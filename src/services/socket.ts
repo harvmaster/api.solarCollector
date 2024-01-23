@@ -81,7 +81,7 @@ class WebSocket {
       return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('')
     })
 
-    const channel = this.channels.find((channel) => channel.id === channelId)
+    let channel = this.channels.find((channel) => channel.id === channelId)
 
     // Create channel if they are a provider
     if (!channel) {
@@ -98,6 +98,8 @@ class WebSocket {
         consumers: [],
         provider: null
       })
+
+      channel = this.channels.find((channel) => channel.id === channelId)
     }
 
     // join channel - provider
@@ -121,7 +123,7 @@ class WebSocket {
         id: client.id,
         client
       })
-      return client.emit('joined', { channelId })
+      return client.emit('joined', { channelId, state: channel.state })
     }
   }
 
@@ -164,7 +166,7 @@ class WebSocket {
     console.log('connection attempt')
 
     // Setup event listeners
-    client.prependAny(console.log)
+    // client.prependAny(console.log)
     client.on('update', (msg) => this.onUpdate(client, msg))
     client.on('join', (msg) => this.onJoin(client, msg))
   }
