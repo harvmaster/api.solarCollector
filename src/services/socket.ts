@@ -32,6 +32,7 @@ interface Channel {
 interface ChannelState {
   solar?: number;
   battery?: number;
+  batteryVoltage?: number;
   consumption?: number;
 }
 
@@ -93,7 +94,8 @@ class WebSocket {
         state: {
           solar: 0,
           battery: 0,
-          consumption: 0
+          consumption: 0,
+          batteryVoltage: 0
         },
         consumers: [],
         provider: null
@@ -136,6 +138,7 @@ class WebSocket {
   async onUpdate (client: Client, msg: ChannelState) {
     // is client a provider
     const channel = this.channels.find(channel => channel.provider.id === client.id)
+    if (!channel) return client.emit('error', { error: 'No channel found' })
     const user = channel.provider
 
     // Validate msg
@@ -144,7 +147,7 @@ class WebSocket {
     if (msg.consumption && isNaN(msg.consumption)) return client.emit('error', { error: 'Invalid consumption value' })
 
     // has extra fields?
-    const validKeys = ['solar', 'battery', 'consumption']
+    const validKeys = ['solar', 'battery', 'batteryVoltage', 'consumption']
     if (Object.keys(msg).some(key => !validKeys.includes(key))) return client.emit('error', { error: 'Invalid key' })
 
     // update state and send to consumers
